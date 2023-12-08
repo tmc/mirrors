@@ -14,8 +14,7 @@ from .proto import chat_pb2, chat_pb2_grpc, sampler_public_pb2
 class AsyncGrok:
     """Allows talking to Grok via the API.
 
-    Note that all conversations performed via this API will show up on grok.x.ai too. So, do NOT use
-    this API to build new products as it's personalized to your user. Use the `chat` API instead.
+    Note that all conversations performed via this API will show up on grok.x.ai too.
     """
 
     def __init__(self, stub: chat_pb2_grpc.ChatStub):
@@ -59,7 +58,9 @@ class AsyncGrok:
 
     async def list_conversations(self) -> list[chat_pb2.Conversation]:
         """Returns a list of all conversations."""
-        response: chat_pb2.ListConversationsResponse = await self._stub.ListConversations(empty_pb2.Empty())
+        response: chat_pb2.ListConversationsResponse = await self._stub.ListConversations(
+            empty_pb2.Empty()
+        )
         return list(response.conversations)
 
 
@@ -83,6 +84,7 @@ class Conversation:
         model_name: str,
         fun_mode: bool,
         conversation_id: Optional[str],
+        dev_only_use_grok: bool = True,
     ):
         """Initializes a new instance of the `Conversation` class.
 
@@ -92,12 +94,15 @@ class Conversation:
             fun_mode: True if fun mode shall be enabled for this conversation.
             conversation_id: ID of this conversation. If no ID was provided, a new conversation is
                 created when the first API call is issued.
+            dev_only_use_grok: By setting this to `False`, the conversation is with the raw model
+                instead of with Grok. This means there is no support for searching or fun mode.
         """
         self._stub = stub
         self._model_name = model_name
         self._fun_mode = fun_mode
         self._conversation_id: Optional[str] = conversation_id
         self._conversation: Optional[chat_pb2.Conversation] = None
+        self._use_grok = dev_only_use_grok
 
         # True if this conversation was deleted.
         self._deleted = False
@@ -114,7 +119,7 @@ class Conversation:
         """Returns the ID of this conversation.
 
         Raises:
-            ValueError: if no actual conversation has been created or loaded yet.
+            ValueError if no actual conversation has been created or loaded yet.
         """
         self._check_not_deleted()
         return self._get_conversation_or_raise().conversation_id
@@ -124,7 +129,7 @@ class Conversation:
         """Returns the title of this conversation.
 
         Raises:
-            ValueError: if no actual conversation has been created or loaded yet.
+            ValueError if no actual conversation has been created or loaded yet.
         """
         self._check_not_deleted()
         return self._get_conversation_or_raise().title
@@ -134,7 +139,7 @@ class Conversation:
         """Returns the time when this conversation was created.
 
         Raises:
-            ValueError: if no actual conversation has been created or loaded yet.
+            ValueError if no actual conversation has been created or loaded yet.
         """
         self._check_not_deleted()
         return _convert_proto_timestamp(self._get_conversation_or_raise().create_time)
@@ -144,7 +149,7 @@ class Conversation:
         """Returns whether the conversation is starred.
 
         Raises:
-            ValueError: if no actual conversation has been created or loaded yet.
+            ValueError if no actual conversation has been created or loaded yet.
         """
         self._check_not_deleted()
         return self._get_conversation_or_raise().starred
@@ -220,7 +225,9 @@ class Conversation:
         )
 
         # Clear the response cache.
-        self._responses = {r.response_id: Response(r, self, self._stub) for r in self._conversation.responses}
+        self._responses = {
+            r.response_id: Response(r, self, self._stub) for r in self._conversation.responses
+        }
 
         # Update the leave response ID to the most recently generated message.
         if self._conversation.responses:
@@ -230,11 +237,15 @@ class Conversation:
         """Deletes this conversation."""
         self._check_not_deleted()
         await self._stub.DeleteConversation(
-            chat_pb2.DeleteConversationRequest(conversation_id=self._get_conversation_or_raise().conversation_id)
+            chat_pb2.DeleteConversationRequest(
+                conversation_id=self._get_conversation_or_raise().conversation_id
+            )
         )
         self._deleted = True
 
-    def add_response(self, user_message: str) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
+    def add_response(
+        self, user_message: str
+    ) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
         """Adds a new response to this conversation.
 
         The response is added to the graph with its parent being the current `leaf` response.
@@ -247,9 +258,9 @@ class Conversation:
 
         Returns:
             A tuple of the form (token_generator, new_model_response). `token_generator` is an async
-                generator that emits the individual tokens produced by the model. This can be used
-                for applications that require "streaming responses". `new_model_response` is a
-                future that evaluates to the generated model response.
+            generator that emits the individual tokens produced by the model. This can be used for
+            applications that require "streaming responses". `new_model_response` is a future that
+            evaluates to the generated model response.
         """
         self._check_not_deleted()
         # This is the future that will resolve to the new model response when the for loop finishes.
@@ -257,56 +268,54 @@ class Conversation:
 
         async def _token_stream():
             """Streams out the tokens the model generates."""
-            try:
-                # If the conversation hasn't been created yet, create it.
-                if self._conversation_id is None:
-                    await self._create_conversation()
+            # If the conversation hasn't been created yet, create it.
+            if self._conversation_id is None:
+                await self._create_conversation()
 
-                # If we haven't loaded the conversation yet, load it.
-                if self._conversation is None:
-                    await self.load()
+            # If we haven't loaded the conversation yet, load it.
+            if self._conversation is None:
+                await self.load()
 
-                # Start sampling from Grok.
-                response = self._stub.AddResponse(
-                    chat_pb2.AddResponseRequest(
-                        conversation_id=self._conversation_id,
-                        message=user_message,
-                        model_name=self._model_name,
-                        parent_response_id=self._leaf_response_id or "",
-                        system_prompt_name="fun" if self._fun_mode else "",
-                    )
+            # Start sampling from Grok.
+            response = self._stub.AddResponse(
+                chat_pb2.AddResponseRequest(
+                    conversation_id=self._conversation_id,
+                    message=user_message,
+                    model_name=self._model_name,
+                    parent_response_id=self._leaf_response_id or "",
+                    use_grok=self._use_grok,
+                    system_prompt_name="fun" if self._fun_mode else "",
                 )
+            )
 
-                # Unroll the responses and emit the tokens.
-                async for msg in response:
-                    if msg.HasField("user_response"):
-                        # This is the user response, which was generated from the input message.
-                        user_response = Response(msg.user_response, self, self._stub)
-                        self._responses[user_response.response_id] = user_response
-                    elif msg.HasField("model_response"):
-                        # This indicates that the model has finished sampling. Create a new response
-                        # object from the generated model response.
-                        model_response = Response(msg.model_response, self, self._stub)
-                        self._responses[model_response.response_id] = model_response
-                        self._leaf_response_id = model_response.response_id
-                        new_model_future.set_result(model_response)
-                    elif msg.HasField("query_action"):
-                        # This message indicates that the model is currently performing a search.
-                        # Again, we don't really need this info in the SDK. However, we'll add a log
-                        # message for debugging purposes.
-                        query: chat_pb2.QueryAction = msg.query_action
-                        logging.debug("Model is performing a %s-query: %s", query.type, query.query)
-                    elif msg.HasField("token"):
-                        token: sampler_public_pb2.SampleTokensResponse = msg.token
+            # Unroll the responses and emit the tokens.
+            async for msg in response:
+                if msg.HasField("user_response"):
+                    # This is the user response, which was generated from the input message.
+                    user_response = Response(msg.user_response, self, self._stub)
+                    self._responses[user_response.response_id] = user_response
+                elif msg.HasField("model_response"):
+                    # This indicates that the model has finished sampling. Create a new response
+                    # object from the generated model response.
+                    model_response = Response(msg.model_response, self, self._stub)
+                    self._responses[model_response.response_id] = model_response
+                    self._leaf_response_id = model_response.response_id
+                    new_model_future.set_result(model_response)
+                elif msg.HasField("query_action"):
+                    # This message indicates that the model is currently performing a search. Again,
+                    # we don't really need this info in the SDK. However, we'll add a log message
+                    # for debugging purposes.
+                    query: chat_pb2.QueryAction = msg.query_action
+                    logging.debug("Model is performing a %s-query: %s", query.type, query.query)
+                elif msg.HasField("token"):
+                    token: sampler_public_pb2.SampleTokensResponse = msg.token
 
-                        # This can either be a real message or a budget update.
-                        if token.HasField("token"):
-                            # Output the emitted text.
-                            yield token.token.final_logit.string_token
-                        elif token.HasField("budget"):
-                            sampler.log_budget_update(token.budget)
-            except Exception as e:
-                new_model_future.set_exception(e)
+                    # This can either be a real message or a budget update.
+                    if token.HasField("token"):
+                        # Output the emitted text.
+                        yield token.token.final_logit.string_token
+                    elif token.HasField("budget"):
+                        sampler.log_budget_update(token.budget)
 
             # Raise an exception if no model response was produced.
             if not new_model_future.done():
@@ -362,7 +371,9 @@ class Conversation:
 
     async def _create_conversation(self):
         """Creates a new conversation."""
-        conversation: chat_pb2.Conversation = await self._stub.CreateConversation(chat_pb2.CreateConversationRequest())
+        conversation: chat_pb2.Conversation = await self._stub.CreateConversation(
+            chat_pb2.CreateConversationRequest()
+        )
         self._conversation_id = conversation.conversation_id
         self._conversation = conversation
 
@@ -392,7 +403,9 @@ class Response:
     Note that the properties of the response are cached client-side. Call the refresh function
     """
 
-    def __init__(self, response: chat_pb2.Response, conversation: Conversation, stub: chat_pb2_grpc.ChatStub):
+    def __init__(
+        self, response: chat_pb2.Response, conversation: Conversation, stub: chat_pb2_grpc.ChatStub
+    ):
         """Initializes a new instance of the `Response` class.
 
         Args:
@@ -404,7 +417,9 @@ class Response:
         self._conversation = conversation
         self._stub = stub
 
-    def replace(self, new_message: str) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
+    def replace(
+        self, new_message: str
+    ) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
         """Replaces the text of this message with a new text.
 
         Note: If this is a user response, a new model response will be sampled. If this is a model
@@ -486,7 +501,9 @@ class Response:
             try:
                 return self._conversation.get_response(self.parent_response_id)
             except KeyError as e:
-                raise KeyError(f"Cannot find parent response with ID {self.parent_response_id}.") from e
+                raise KeyError(
+                    f"Cannot find parent response with ID {self.parent_response_id}."
+                ) from e
         return None
 
     @property

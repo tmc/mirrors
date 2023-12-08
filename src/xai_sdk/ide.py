@@ -20,7 +20,7 @@ _MODEL = 2
 
 
 # The client used by the ide.
-_CLIENT: Union[_client.Client, None] = None
+_CLIENT: _client.Client | None = None
 
 
 def set_client(client: _client.Client):
@@ -37,7 +37,7 @@ def get_client() -> _client.Client:
     return _CLIENT
 
 
-async def user_input(text: str) -> Optional[str]:
+async def user_input(text: str) -> str | None:
     """Asks the user to enter a string.
 
     Args:
@@ -213,8 +213,8 @@ class Context:
     ) -> SampleResult:
         """Generates a model response based on the current prompt.
 
-        The current prompt consists of all text that has been added to the context either since the
-        beginning of the program.
+        The current prompt consists of all text that has been added to the prompt either since the
+        beginning of the program or since the last call to `clear_prompt`.
 
         Args:
             max_len: Maximum number of tokens to generate.
@@ -253,7 +253,8 @@ class Context:
             rng_seed = self._get_next_rng_seed()
 
         logging.debug(
-            "Generating %d tokens [seed=%d, temperature=%f, nucleus_p=%f, stop_tokens=%s, stop_strings=%s].",
+            f"Generating %d tokens [seed=%d, temperature=%f, "
+            f"nucleus_p=%f, stop_tokens=%s, stop_strings=%s].",
             max_len,
             rng_seed,
             temperature,
@@ -477,20 +478,3 @@ async def read_file(file_name: str) -> bytes:
     """
     content = await get_client().files.download(file_name)
     return content
-
-
-async def write_file(
-    file_name: str,
-    content: bytes,
-    mime_type: str = "application/octet-stream",
-    overwrite: bool = True,
-):
-    """Stores a file in the IDE.
-
-    Args:
-        file_name: Name of the file to write.
-        content: File content as a byte array.
-        mime_type: The MIME type of the file.
-        overwrite: If the file already exists, overwrite it.
-    """
-    await get_client().files.upload(file_name, content, mime_type, overwrite)

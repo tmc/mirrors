@@ -25,7 +25,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "grpcio",
+    "grpc",
     "protobuf",
 ]
 
@@ -84,11 +84,8 @@ line-length = 120
 skip-string-normalization = true
 
 [tool.ruff]
-exclude = ["src/xai_sdk"]
 target-version = "py37"
 line-length = 120
-
-[tool.ruff.lint]
 select = [
   "A",
   "ARG",
@@ -131,13 +128,13 @@ unfixable = [
   "F401",
 ]
 
-[tool.ruff.lint.isort]
+[tool.ruff.isort]
 known-first-party = ["xai_sdk"]
 
-[tool.ruff.lint.flake8-tidy-imports]
+[tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.lint.per-file-ignores]
+[tool.ruff.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
