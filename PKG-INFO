@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: xai-sdk
-Version: 0.3.0
+Version: 0.0.3
 Project-URL: Documentation, https://x.ai/api/sdk.html
 Author-email: Toby Pohlen <pohlen@x.ai>
 License-Expression: MIT
@@ -15,9 +15,7 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Requires-Python: >=3.7
-Requires-Dist: deprecated
 Requires-Dist: grpcio
-Requires-Dist: parameterized
 Requires-Dist: protobuf
 Description-Content-Type: text/markdown
 

@@ -45,17 +45,16 @@ class AsyncFiles:
         with open(local_file_name, "rb") as f:
             await self.upload(remote_file_name, f.read())
 
-    async def upload(self, file_name: str, content: bytes, mime_type: str = "", overwrite: bool = True) -> None:
+    async def upload(self, file_name: str, content: bytes, mime_type: str = "") -> None:
         """Creates a new file in the IDE.
 
         Args:
             file_name: Name of the file in the IDE.
             content: File contents.
             mime_type: Mime type of the file.
-            overwrite: True if the file shall be overwritten when it's re-uploaded.
         """
         await self._stub.UploadFile(
-            files_pb2.UploadFileRequest(file_name=file_name, content=content, mime_type=mime_type, overwrite=overwrite)
+            files_pb2.UploadFileRequest(file_name=file_name, content=content, mime_type=mime_type)
         )
 
     async def list(self) -> list[files_pb2.FileMetadata]:
