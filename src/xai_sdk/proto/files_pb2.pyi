@@ -13,18 +13,21 @@ from google.protobuf.internal import containers as _containers
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class UploadFileRequest(_message.Message):
-    __slots__ = ["file_name", "content", "mime_type"]
+    __slots__ = ["file_name", "content", "mime_type", "overwrite"]
     FILE_NAME_FIELD_NUMBER: _ClassVar[int]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     MIME_TYPE_FIELD_NUMBER: _ClassVar[int]
+    OVERWRITE_FIELD_NUMBER: _ClassVar[int]
     file_name: str
     content: bytes
     mime_type: str
+    overwrite: bool
     def __init__(
         self,
         file_name: _Optional[str] = ...,
         content: _Optional[bytes] = ...,
         mime_type: _Optional[str] = ...,
+        overwrite: bool = ...,
     ) -> None: ...
 
 class FileMetadata(_message.Message):
