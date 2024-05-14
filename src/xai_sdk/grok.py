@@ -83,6 +83,7 @@ class Conversation:
         model_name: str,
         fun_mode: bool,
         conversation_id: Optional[str],
+        dev_only_use_grok: bool = True,
     ):
         """Initializes a new instance of the `Conversation` class.
 
@@ -92,12 +93,15 @@ class Conversation:
             fun_mode: True if fun mode shall be enabled for this conversation.
             conversation_id: ID of this conversation. If no ID was provided, a new conversation is
                 created when the first API call is issued.
+            dev_only_use_grok: By setting this to `False`, the conversation is with the raw model
+                instead of with Grok. This means there is no support for searching or fun mode.
         """
         self._stub = stub
         self._model_name = model_name
         self._fun_mode = fun_mode
         self._conversation_id: Optional[str] = conversation_id
         self._conversation: Optional[chat_pb2.Conversation] = None
+        self._use_grok = dev_only_use_grok
 
         # True if this conversation was deleted.
         self._deleted = False
@@ -273,6 +277,7 @@ class Conversation:
                         message=user_message,
                         model_name=self._model_name,
                         parent_response_id=self._leaf_response_id or "",
+                        use_grok=self._use_grok,
                         system_prompt_name="fun" if self._fun_mode else "",
                     )
                 )

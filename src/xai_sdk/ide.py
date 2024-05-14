@@ -20,7 +20,7 @@ _MODEL = 2
 
 
 # The client used by the ide.
-_CLIENT: Union[_client.Client, None] = None
+_CLIENT: _client.Client | None = None
 
 
 def set_client(client: _client.Client):
@@ -37,7 +37,7 @@ def get_client() -> _client.Client:
     return _CLIENT
 
 
-async def user_input(text: str) -> Optional[str]:
+async def user_input(text: str) -> str | None:
     """Asks the user to enter a string.
 
     Args:
