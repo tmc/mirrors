@@ -5,8 +5,8 @@ from typing import Optional
 
 import grpc
 
-from . import files, grok, sampler
-from .proto import chat_pb2_grpc, files_pb2_grpc, sampler_public_pb2_grpc
+from . import chat, files, grok, sampler
+from .proto import chat_pb2_grpc, files_pb2_grpc, sampler_public_pb2_grpc, stateless_chat_pb2_grpc
 
 
 class Client:
@@ -19,8 +19,10 @@ class Client:
     The API is hosted on api.x.ai, and we connect via port 443.
     """
 
-    sampler: sampler.AsyncSampler
+    chat: chat.AsyncChat
+    files: files.AsyncFiles
     grok: grok.AsyncGrok
+    sampler: sampler.AsyncSampler
 
     def __init__(
         self,
@@ -28,6 +30,7 @@ class Client:
         *,
         initial_rng_seed: Optional[int] = None,
         api_host: str = "api.x.ai",
+        metadata: Optional[tuple[tuple[str, str]]] = None,
     ) -> None:
         """Initializes a new instance of the `Client` class.
 
@@ -38,6 +41,7 @@ class Client:
                 the order of API calls. If unspecified, a random seed will be sampled for every new
                 instance of the `Client` class.
             api_host: Hostname of the API server.
+            metadata: Metadata to be sent with each gRPC request. Each tuple should contain a key/value pair
 
         Raises:
             ValueError: If the `XAI_API_KEY` environment variable is not set.
@@ -50,7 +54,7 @@ class Client:
             raise ValueError("Empty xAI API key provided.")
 
         # Create a channel to connect to the API host. Use the API key for authentication.
-        call_credentials = grpc.metadata_call_credentials(_APIAuthPlugin(api_key))
+        call_credentials = grpc.metadata_call_credentials(_APIAuthPlugin(api_key, metadata))
         channel_credentials = grpc.ssl_channel_credentials()
         credentials = grpc.composite_channel_credentials(channel_credentials, call_credentials)
         async_channel = grpc.aio.secure_channel(api_host, credentials)
@@ -60,6 +64,7 @@ class Client:
         self.sampler = sampler.AsyncSampler(
             sampler_public_pb2_grpc.SamplerStub(channel=async_channel), initial_rng_seed
         )
+        self.chat = chat.AsyncChat(stateless_chat_pb2_grpc.StatelessChatStub(channel=async_channel))
         self.grok = grok.AsyncGrok(chat_pb2_grpc.ChatStub(channel=async_channel))
         self.files = files.AsyncFiles(files_pb2_grpc.FileStub(channel=async_channel))
 
@@ -76,8 +81,7 @@ def _get_api_from_env() -> str:
     api_key = os.environ.get("XAI_API_KEY")
     if api_key is None:
         raise ValueError(
-            "Trying to read the xAI API key from the XAI_API_KEY environment variable "
-            "but it doesn't exist."
+            "Trying to read the xAI API key from the XAI_API_KEY environment variable but it doesn't exist."
         )
     else:
         return api_key
@@ -86,17 +90,26 @@ def _get_api_from_env() -> str:
 class _APIAuthPlugin(grpc.AuthMetadataPlugin):
     """A specification for API-key based authentication."""
 
-    def __init__(self, api_key: str) -> None:
+    def __init__(self, api_key: str, metadata) -> None:
         """Initializes a new instance of the `_APIAuthPlugin` class.
 
         Args:
             api_key: A valid xAI API key.
+            metadata: Metadata to be sent with each gRPC request. Each tuple should contain a key/value pair
         """
         self._api_key = api_key
+        self._metadata = metadata
 
     def __call__(
         self, context: grpc.AuthMetadataPluginCallback, callback: grpc.AuthMetadataPluginCallback
     ):
         """See `grpc.AuthMetadataPlugin.__call__`."""
         del context  # Unused.
-        callback((("apikey", self._api_key),), None)
+
+        api_key = ("apikey", self._api_key)
+        if self._metadata is not None:
+            metadata = self._metadata + (api_key,)
+        else:
+            metadata = (api_key,)
+        callback(metadata, None)
+

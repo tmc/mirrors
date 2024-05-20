@@ -10,14 +10,12 @@ import random
 from typing import AsyncGenerator, Optional, Sequence, Union
 
 from .proto import sampler_public_pb2, sampler_public_pb2_grpc
-
+from .proto.sampler_public_pb2 import PromptInput, TokenIds
 
 class AsyncSampler:
     """Allows sampling from the raw model API. All functions are asynchronous."""
 
-    def __init__(
-        self, stub: sampler_public_pb2_grpc.SamplerStub, initial_rng_seed: Optional[int] = None
-    ):
+    def __init__(self, stub: sampler_public_pb2_grpc.SamplerStub, initial_rng_seed: Optional[int] = None):
         """Initializes a new instance of the `Sampler` class.
 
         Args:
@@ -74,6 +72,7 @@ class AsyncSampler:
         self,
         prompt: Union[str, Sequence[int], Sequence["Token"]],
         *,
+        inputs: Sequence[Union[str, int, bytes]] = (),
         model_name: str = "",
         max_len: int = 256,
         temperature: float = 0.7,
@@ -89,8 +88,10 @@ class AsyncSampler:
         """Generates a model response by continuing `prompt`.
 
         Args:
-            prompt: Prompt to continue. This can either be a string, a sequence of token IDs, or a
-                sequence of `Token` instances.
+            prompt: [Deprecated, use inputs instead] Prompt to continue. This can either be a string, a sequence of
+                token IDs, or a sequence of `Token` instances.
+            inputs: Multimodal input of the model. This can be a sequence of strings, token IDs, image in bytes or
+                base64 encoded string.
             model_name: Name of the model to sample from. Leave empty to sample from the default
                 model.
             max_len: Maximum number of tokens to generate.
@@ -126,16 +127,12 @@ class AsyncSampler:
         Yields:
             A sequence of `Token` instances.
         """
-        # If the prompt is empty, there is nothing we can do.
-        if not prompt:
-            return
 
         if rng_seed is None:
             rng_seed = self._get_next_rng_seed()
 
         logging.debug(
-            "Sampling %d tokens [seed=%d, temperature=%f, nucleus_p=%f, stop_tokens=%s, "
-            "stop_strings=%s].",
+            "Sampling %d tokens [seed=%d, temperature=%f, nucleus_p=%f, stop_tokens=%s, stop_strings=%s].",
             max_len,
             rng_seed,
             temperature,
@@ -155,14 +152,29 @@ class AsyncSampler:
                 ]
             if disallowed_tokens:
                 disallowed_tokens = list(disallowed_tokens) + [
-                    f"▁{t}"
-                    for t in disallowed_tokens
-                    if isinstance(t, str) and not t.startswith("▁")
+                    f"▁{t}" for t in disallowed_tokens if isinstance(t, str) and not t.startswith("▁")
                 ]
 
-        prompt = await self._prompt_to_token_ids(prompt, model_name)
+        # Convert inputs
+        converted_inputs = []
+        if inputs:
+            for element in inputs:
+                if isinstance(element, str):
+                    if element.startswith("data:image"):
+                        converted_inputs.append(PromptInput(image_base64=element))
+                    converted_inputs.append(PromptInput(text=element))
+                elif isinstance(element, list):
+                    converted_inputs.append(PromptInput(token_ids=TokenIds(element)))
+                elif isinstance(element, bytes):
+                    converted_inputs.append(PromptInput(image_bytes=element))
+                else:
+                    logging.error("Invalid input type %s.", type(element))
+        else:
+            logging.warning("Usage of prompt argument is deprecated. Please use inputs instead.")
+            converted_inputs = (PromptInput(text=prompt),)
+
         request = sampler_public_pb2.SampleTokensRequest(
-            prompt=prompt,
+            inputs=converted_inputs,
             settings=sampler_public_pb2.SampleSettings(
                 max_len=max_len or 0,
                 temperature=temperature,
@@ -176,7 +188,6 @@ class AsyncSampler:
             return_attention=return_attention,
             model_name=model_name,
         )
-
         response = self._stub.SampleTokens(request)
 
         token_counter = 0
