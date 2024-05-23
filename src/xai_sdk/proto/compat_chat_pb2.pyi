@@ -6,9 +6,9 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class GetCompletionsRequest(_message.Message):
-    __slots__ = ("messages", "model", "frequency_penalty", "logit_bias", "logprobs", "top_logprobs", "max_tokens", "n", "presence_penalty", "response_format", "seed", "stop", "temperature", "top_p", "user")
+    __slots__ = ["messages", "model", "frequency_penalty", "logit_bias", "logprobs", "top_logprobs", "max_tokens", "n", "presence_penalty", "response_format", "seed", "stop", "temperature", "top_p", "user"]
     class LogitBiasEntry(_message.Message):
-        __slots__ = ("key", "value")
+        __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: int
@@ -47,7 +47,7 @@ class GetCompletionsRequest(_message.Message):
     def __init__(self, messages: _Optional[_Iterable[_Union[Message, _Mapping]]] = ..., model: _Optional[str] = ..., frequency_penalty: _Optional[float] = ..., logit_bias: _Optional[_Mapping[int, float]] = ..., logprobs: bool = ..., top_logprobs: _Optional[int] = ..., max_tokens: _Optional[int] = ..., n: _Optional[int] = ..., presence_penalty: _Optional[float] = ..., response_format: _Optional[_Union[ResponseFormat, _Mapping]] = ..., seed: _Optional[int] = ..., stop: _Optional[_Iterable[str]] = ..., temperature: _Optional[float] = ..., top_p: _Optional[float] = ..., user: _Optional[str] = ...) -> None: ...
 
 class GetChatCompletionChunk(_message.Message):
-    __slots__ = ("id", "choices", "created", "model", "system_fingerprint", "object")
+    __slots__ = ["id", "choices", "created", "model", "system_fingerprint", "object"]
     ID_FIELD_NUMBER: _ClassVar[int]
     CHOICES_FIELD_NUMBER: _ClassVar[int]
     CREATED_FIELD_NUMBER: _ClassVar[int]
@@ -63,7 +63,7 @@ class GetChatCompletionChunk(_message.Message):
     def __init__(self, id: _Optional[str] = ..., choices: _Optional[_Iterable[_Union[ChoiceChunk, _Mapping]]] = ..., created: _Optional[int] = ..., model: _Optional[str] = ..., system_fingerprint: _Optional[str] = ..., object: _Optional[str] = ...) -> None: ...
 
 class GetChatCompletionResponse(_message.Message):
-    __slots__ = ("id", "choices", "created", "model", "system_fingerprint", "object", "usage")
+    __slots__ = ["id", "choices", "created", "model", "system_fingerprint", "object", "usage"]
     ID_FIELD_NUMBER: _ClassVar[int]
     CHOICES_FIELD_NUMBER: _ClassVar[int]
     CREATED_FIELD_NUMBER: _ClassVar[int]
@@ -81,7 +81,7 @@ class GetChatCompletionResponse(_message.Message):
     def __init__(self, id: _Optional[str] = ..., choices: _Optional[_Iterable[_Union[Choice, _Mapping]]] = ..., created: _Optional[int] = ..., model: _Optional[str] = ..., system_fingerprint: _Optional[str] = ..., object: _Optional[str] = ..., usage: _Optional[_Union[Usage, _Mapping]] = ...) -> None: ...
 
 class ChoiceChunk(_message.Message):
-    __slots__ = ("delta", "logprobs", "finish_reason", "index")
+    __slots__ = ["delta", "logprobs", "finish_reason", "index"]
     DELTA_FIELD_NUMBER: _ClassVar[int]
     LOGPROBS_FIELD_NUMBER: _ClassVar[int]
     FINISH_REASON_FIELD_NUMBER: _ClassVar[int]
@@ -93,7 +93,7 @@ class ChoiceChunk(_message.Message):
     def __init__(self, delta: _Optional[_Union[Delta, _Mapping]] = ..., logprobs: _Optional[_Union[LogProbs, _Mapping]] = ..., finish_reason: _Optional[str] = ..., index: _Optional[int] = ...) -> None: ...
 
 class Delta(_message.Message):
-    __slots__ = ("content", "role")
+    __slots__ = ["content", "role"]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     ROLE_FIELD_NUMBER: _ClassVar[int]
     content: str
@@ -101,7 +101,7 @@ class Delta(_message.Message):
     def __init__(self, content: _Optional[str] = ..., role: _Optional[str] = ...) -> None: ...
 
 class Choice(_message.Message):
-    __slots__ = ("finish_reason", "index", "message", "logprobs")
+    __slots__ = ["finish_reason", "index", "message", "logprobs"]
     FINISH_REASON_FIELD_NUMBER: _ClassVar[int]
     INDEX_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
@@ -113,7 +113,7 @@ class Choice(_message.Message):
     def __init__(self, finish_reason: _Optional[str] = ..., index: _Optional[int] = ..., message: _Optional[_Union[CompletionMessage, _Mapping]] = ..., logprobs: _Optional[_Union[LogProbs, _Mapping]] = ...) -> None: ...
 
 class CompletionMessage(_message.Message):
-    __slots__ = ("content", "role")
+    __slots__ = ["content", "role"]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     ROLE_FIELD_NUMBER: _ClassVar[int]
     content: str
@@ -121,13 +121,13 @@ class CompletionMessage(_message.Message):
     def __init__(self, content: _Optional[str] = ..., role: _Optional[str] = ...) -> None: ...
 
 class LogProbs(_message.Message):
-    __slots__ = ("content",)
+    __slots__ = ["content"]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     content: _containers.RepeatedCompositeFieldContainer[LogProb]
     def __init__(self, content: _Optional[_Iterable[_Union[LogProb, _Mapping]]] = ...) -> None: ...
 
 class LogProb(_message.Message):
-    __slots__ = ("token", "logprob", "bytes", "top_logprobs")
+    __slots__ = ["token", "logprob", "bytes", "top_logprobs"]
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     LOGPROB_FIELD_NUMBER: _ClassVar[int]
     BYTES_FIELD_NUMBER: _ClassVar[int]
@@ -139,7 +139,7 @@ class LogProb(_message.Message):
     def __init__(self, token: _Optional[str] = ..., logprob: _Optional[float] = ..., bytes: _Optional[bytes] = ..., top_logprobs: _Optional[_Iterable[_Union[TopLogProb, _Mapping]]] = ...) -> None: ...
 
 class Usage(_message.Message):
-    __slots__ = ("completion_tokens", "prompt_tokens", "total_tokens")
+    __slots__ = ["completion_tokens", "prompt_tokens", "total_tokens"]
     COMPLETION_TOKENS_FIELD_NUMBER: _ClassVar[int]
     PROMPT_TOKENS_FIELD_NUMBER: _ClassVar[int]
     TOTAL_TOKENS_FIELD_NUMBER: _ClassVar[int]
@@ -149,7 +149,7 @@ class Usage(_message.Message):
     def __init__(self, completion_tokens: _Optional[int] = ..., prompt_tokens: _Optional[int] = ..., total_tokens: _Optional[int] = ...) -> None: ...
 
 class TopLogProb(_message.Message):
-    __slots__ = ("token", "logprob", "bytes")
+    __slots__ = ["token", "logprob", "bytes"]
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     LOGPROB_FIELD_NUMBER: _ClassVar[int]
     BYTES_FIELD_NUMBER: _ClassVar[int]
@@ -159,37 +159,17 @@ class TopLogProb(_message.Message):
     def __init__(self, token: _Optional[str] = ..., logprob: _Optional[float] = ..., bytes: _Optional[bytes] = ...) -> None: ...
 
 class ResponseFormat(_message.Message):
-    __slots__ = ("type",)
+    __slots__ = ["type"]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     type: str
     def __init__(self, type: _Optional[str] = ...) -> None: ...
 
-class ImageUrl(_message.Message):
-    __slots__ = ("url", "detail")
-    URL_FIELD_NUMBER: _ClassVar[int]
-    DETAIL_FIELD_NUMBER: _ClassVar[int]
-    url: str
-    detail: str
-    def __init__(self, url: _Optional[str] = ..., detail: _Optional[str] = ...) -> None: ...
-
-class Content(_message.Message):
-    __slots__ = ("type", "text", "image_url")
-    TYPE_FIELD_NUMBER: _ClassVar[int]
-    TEXT_FIELD_NUMBER: _ClassVar[int]
-    IMAGE_URL_FIELD_NUMBER: _ClassVar[int]
-    type: str
-    text: str
-    image_url: ImageUrl
-    def __init__(self, type: _Optional[str] = ..., text: _Optional[str] = ..., image_url: _Optional[_Union[ImageUrl, _Mapping]] = ...) -> None: ...
-
 class Message(_message.Message):
-    __slots__ = ("content_legacy", "content", "role", "name")
-    CONTENT_LEGACY_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ["content", "role", "name"]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     ROLE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
-    content_legacy: str
-    content: _containers.RepeatedCompositeFieldContainer[Content]
+    content: str
     role: str
     name: str
-    def __init__(self, content_legacy: _Optional[str] = ..., content: _Optional[_Iterable[_Union[Content, _Mapping]]] = ..., role: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...
+    def __init__(self, content: _Optional[str] = ..., role: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...

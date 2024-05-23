@@ -5,7 +5,7 @@ from typing import Optional
 
 import grpc
 
-from . import chat, files, grok, sampler
+from . import chat, compat, files, grok, sampler
 from .proto import chat_pb2_grpc, files_pb2_grpc, sampler_public_pb2_grpc, stateless_chat_pb2_grpc
 
 
@@ -55,9 +55,13 @@ class Client:
 
         # Create a channel to connect to the API host. Use the API key for authentication.
         call_credentials = grpc.metadata_call_credentials(_APIAuthPlugin(api_key, metadata))
-        channel_credentials = grpc.ssl_channel_credentials()
+        if api_host.startswith("localhost:"):
+            channel_credentials = grpc.local_channel_credentials()
+        else:
+            channel_credentials = grpc.ssl_channel_credentials()
         credentials = grpc.composite_channel_credentials(channel_credentials, call_credentials)
         async_channel = grpc.aio.secure_channel(api_host, credentials)
+        sync_channel = grpc.secure_channel(api_host, credentials)
 
         # Create the stubs used by the SDK. Note that they don't create any connections until being
         # used.
@@ -67,6 +71,9 @@ class Client:
         self.chat = chat.AsyncChat(stateless_chat_pb2_grpc.StatelessChatStub(channel=async_channel))
         self.grok = grok.AsyncGrok(chat_pb2_grpc.ChatStub(channel=async_channel))
         self.files = files.AsyncFiles(files_pb2_grpc.FileStub(channel=async_channel))
+
+        # OpenAI-compatible client.
+        self.compat = compat.Client(sync_channel, async_channel)
 
 
 def _get_api_from_env() -> str:
@@ -112,4 +119,3 @@ class _APIAuthPlugin(grpc.AuthMetadataPlugin):
         else:
             metadata = (api_key,)
         callback(metadata, None)
-
