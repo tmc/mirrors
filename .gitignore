@@ -1,11 +1,19 @@
+x/aman/src/examples/
+
+*.swp
+
 dataset/testdata/db-dump.tar.gz
 grok_cache/
 poli_compass_results
+
+# JavaScript
+node_modules
 
 # Rust
 debug/
 target/
 **/*.rs.bk
+flamegraph.svg
 
 # Python
 *.so
@@ -13,7 +21,10 @@ target/
 __pycache__
 python-lib/build
 python-lib/dist
+venv
 .pytest_cache
+.ruff_cache
+**/.ipynb_checkpoints/
 
 # Mac
 .DS_STORE
@@ -21,5 +32,14 @@ python-lib/dist
 # Uncompressed cross-compilation artifacts
 .cross_artifacts
 
-# vscode settings
+# IDE settings
 .vscode/
+.idea
+
+# ML artifacts
+**/tokenizer.model
+x/xuechen/annotation_data
+x/xuechen/deprecated/**
+x/xuechen/assets/**
+x/xuechen/dump/**
+

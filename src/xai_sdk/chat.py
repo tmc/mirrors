@@ -63,9 +63,7 @@ class Conversation:
         """Returns true if the conversation happens in fun mode."""
         return self._conversation.system_prompt_name == "fun"
 
-    async def add_response_no_stream(
-        self, user_message: str
-    ) -> stateless_chat_pb2.StatelessResponse:
+    async def add_response_no_stream(self, user_message: str) -> stateless_chat_pb2.StatelessResponse:
         """Same as `add_response` but doesn't return a token stream.
 
         Use this function if you are only interested in the complete response and don't need to

@@ -59,9 +59,7 @@ class AsyncGrok:
 
     async def list_conversations(self) -> list[chat_pb2.Conversation]:
         """Returns a list of all conversations."""
-        response: chat_pb2.ListConversationsResponse = await self._stub.ListConversations(
-            empty_pb2.Empty()
-        )
+        response: chat_pb2.ListConversationsResponse = await self._stub.ListConversations(empty_pb2.Empty())
         return list(response.conversations)
 
 
@@ -85,7 +83,6 @@ class Conversation:
         model_name: str,
         fun_mode: bool,
         conversation_id: Optional[str],
-        dev_only_use_grok: bool = True,
     ):
         """Initializes a new instance of the `Conversation` class.
 
@@ -95,15 +92,12 @@ class Conversation:
             fun_mode: True if fun mode shall be enabled for this conversation.
             conversation_id: ID of this conversation. If no ID was provided, a new conversation is
                 created when the first API call is issued.
-            dev_only_use_grok: By setting this to `False`, the conversation is with the raw model
-                instead of with Grok. This means there is no support for searching or fun mode.
         """
         self._stub = stub
         self._model_name = model_name
         self._fun_mode = fun_mode
         self._conversation_id: Optional[str] = conversation_id
         self._conversation: Optional[chat_pb2.Conversation] = None
-        self._use_grok = dev_only_use_grok
 
         # True if this conversation was deleted.
         self._deleted = False
@@ -226,9 +220,7 @@ class Conversation:
         )
 
         # Clear the response cache.
-        self._responses = {
-            r.response_id: Response(r, self, self._stub) for r in self._conversation.responses
-        }
+        self._responses = {r.response_id: Response(r, self, self._stub) for r in self._conversation.responses}
 
         # Update the leave response ID to the most recently generated message.
         if self._conversation.responses:
@@ -238,15 +230,11 @@ class Conversation:
         """Deletes this conversation."""
         self._check_not_deleted()
         await self._stub.DeleteConversation(
-            chat_pb2.DeleteConversationRequest(
-                conversation_id=self._get_conversation_or_raise().conversation_id
-            )
+            chat_pb2.DeleteConversationRequest(conversation_id=self._get_conversation_or_raise().conversation_id)
         )
         self._deleted = True
 
-    def add_response(
-        self, user_message: str
-    ) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
+    def add_response(self, user_message: str) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
         """Adds a new response to this conversation.
 
         The response is added to the graph with its parent being the current `leaf` response.
@@ -285,7 +273,6 @@ class Conversation:
                         message=user_message,
                         model_name=self._model_name,
                         parent_response_id=self._leaf_response_id or "",
-                        use_grok=self._use_grok,
                         system_prompt_name="fun" if self._fun_mode else "",
                     )
                 )
@@ -375,9 +362,7 @@ class Conversation:
 
     async def _create_conversation(self):
         """Creates a new conversation."""
-        conversation: chat_pb2.Conversation = await self._stub.CreateConversation(
-            chat_pb2.CreateConversationRequest()
-        )
+        conversation: chat_pb2.Conversation = await self._stub.CreateConversation(chat_pb2.CreateConversationRequest())
         self._conversation_id = conversation.conversation_id
         self._conversation = conversation
 
@@ -407,9 +392,7 @@ class Response:
     Note that the properties of the response are cached client-side. Call the refresh function
     """
 
-    def __init__(
-        self, response: chat_pb2.Response, conversation: Conversation, stub: chat_pb2_grpc.ChatStub
-    ):
+    def __init__(self, response: chat_pb2.Response, conversation: Conversation, stub: chat_pb2_grpc.ChatStub):
         """Initializes a new instance of the `Response` class.
 
         Args:
@@ -421,9 +404,7 @@ class Response:
         self._conversation = conversation
         self._stub = stub
 
-    def replace(
-        self, new_message: str
-    ) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
+    def replace(self, new_message: str) -> tuple[AsyncGenerator[str, "Response"], asyncio.Future["Response"]]:
         """Replaces the text of this message with a new text.
 
         Note: If this is a user response, a new model response will be sampled. If this is a model
@@ -505,9 +486,7 @@ class Response:
             try:
                 return self._conversation.get_response(self.parent_response_id)
             except KeyError as e:
-                raise KeyError(
-                    f"Cannot find parent response with ID {self.parent_response_id}."
-                ) from e
+                raise KeyError(f"Cannot find parent response with ID {self.parent_response_id}.") from e
         return None
 
     @property

@@ -20,7 +20,7 @@ _MODEL = 2
 
 
 # The client used by the ide.
-_CLIENT: _client.Client | None = None
+_CLIENT: Union[_client.Client, None] = None
 
 
 def set_client(client: _client.Client):
@@ -37,7 +37,7 @@ def get_client() -> _client.Client:
     return _CLIENT
 
 
-async def user_input(text: str) -> str | None:
+async def user_input(text: str) -> Optional[str]:
     """Asks the user to enter a string.
 
     Args:
@@ -253,8 +253,7 @@ class Context:
             rng_seed = self._get_next_rng_seed()
 
         logging.debug(
-            f"Generating %d tokens [seed=%d, temperature=%f, "
-            f"nucleus_p=%f, stop_tokens=%s, stop_strings=%s].",
+            "Generating %d tokens [seed=%d, temperature=%f, nucleus_p=%f, stop_tokens=%s, stop_strings=%s].",
             max_len,
             rng_seed,
             temperature,

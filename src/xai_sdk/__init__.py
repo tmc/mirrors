@@ -24,7 +24,7 @@ def does_it_work():
     async def _run():
         prompt = "Yes, it does. Yes, it does. Yes, it does. Yes, it does. Yes, it does."
         print("Does it work?", end="")
-        async for token in Client().sampler.sample(prompt, stop_strings=["."]):
+        async for token in Client().sampler.sample(prompt=prompt, stop_strings=["."]):
             print(token.token_str, end="")
         print("")
 

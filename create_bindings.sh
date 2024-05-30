@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
-python -m grpc_tools.protoc -I../../backend/proto  -I../../backend/proto/google/api --python_out=src/xai_sdk/proto --pyi_out=src/xai_sdk/proto --grpc_python_out=src/xai_sdk/proto ../../backend/proto/chat.proto ../../backend/proto/sampler_public.proto ../../backend/proto/google/api/annotations.proto ../../backend/proto/google/api/http.proto ../../backend/proto/files.proto ../../backend/proto/stateless_chat.proto
+python -m grpc_tools.protoc -I../../backend/proto  -I../../backend/proto/google/api --python_out=src/xai_sdk/proto --pyi_out=src/xai_sdk/proto --grpc_python_out=src/xai_sdk/proto ../../backend/proto/chat.proto ../../backend/proto/prod_search.proto ../../backend/proto/sampler_public.proto ../../backend/proto/google/api/annotations.proto ../../backend/proto/google/api/http.proto ../../backend/proto/files.proto ../../backend/proto/stateless_chat.proto ../../backend/proto/x_entities.proto ../../backend/proto/compat_chat.proto 
 
 # Change imports to be relative
 for file in src/xai_sdk/proto/*; do
   # Check if the file is a regular file
   if [[ -f "$file" ]]; then
-    sed -i '' 's/^import sampler_public_pb2/from . import sampler_public_pb2/' "$file"
     sed -i '' 's/^import chat_pb2/from . import chat_pb2/' "$file"
+    sed -i '' 's/^import compat_chat_pb2/from . import compat_chat_pb2/' "$file"
     sed -i '' 's/^import files_pb2/from . import files_pb2/' "$file"
+    sed -i '' 's/^import prod_search_pb2/from . import prod_search_pb2/' "$file"
+    sed -i '' 's/^import sampler_public_pb2/from . import sampler_public_pb2/' "$file"
     sed -i '' 's/^import stateless_chat_pb2/from . import stateless_chat_pb2/' "$file"
+    sed -i '' 's/^import x_entities/from . import x_entities/' "$file"
     sed -i '' 's/^from google.api/from .google.api/' "$file"
   fi
 done
