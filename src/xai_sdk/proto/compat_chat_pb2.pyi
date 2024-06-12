@@ -164,12 +164,32 @@ class ResponseFormat(_message.Message):
     type: str
     def __init__(self, type: _Optional[str] = ...) -> None: ...
 
+class ImageUrl(_message.Message):
+    __slots__ = ["url", "detail"]
+    URL_FIELD_NUMBER: _ClassVar[int]
+    DETAIL_FIELD_NUMBER: _ClassVar[int]
+    url: str
+    detail: str
+    def __init__(self, url: _Optional[str] = ..., detail: _Optional[str] = ...) -> None: ...
+
+class Content(_message.Message):
+    __slots__ = ["type", "text", "image_url"]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_URL_FIELD_NUMBER: _ClassVar[int]
+    type: str
+    text: str
+    image_url: ImageUrl
+    def __init__(self, type: _Optional[str] = ..., text: _Optional[str] = ..., image_url: _Optional[_Union[ImageUrl, _Mapping]] = ...) -> None: ...
+
 class Message(_message.Message):
-    __slots__ = ["content", "role", "name"]
+    __slots__ = ["content_legacy", "content", "role", "name"]
+    CONTENT_LEGACY_FIELD_NUMBER: _ClassVar[int]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     ROLE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
-    content: str
+    content_legacy: str
+    content: _containers.RepeatedCompositeFieldContainer[Content]
     role: str
     name: str
-    def __init__(self, content: _Optional[str] = ..., role: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...
+    def __init__(self, content_legacy: _Optional[str] = ..., content: _Optional[_Iterable[_Union[Content, _Mapping]]] = ..., role: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...

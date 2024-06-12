@@ -178,3 +178,9 @@ class TokenBudget(_message.Message):
     request_limit: int
     requests_spent: int
     def __init__(self, token_limit: _Optional[int] = ..., tokens_spent: _Optional[int] = ..., request_limit: _Optional[int] = ..., requests_spent: _Optional[int] = ...) -> None: ...
+
+class ListModelsResponse(_message.Message):
+    __slots__ = ["model_names"]
+    MODEL_NAMES_FIELD_NUMBER: _ClassVar[int]
+    model_names: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, model_names: _Optional[_Iterable[str]] = ...) -> None: ...

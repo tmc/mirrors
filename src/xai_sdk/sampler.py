@@ -73,9 +73,9 @@ class AsyncSampler:
 
     async def sample(
         self,
-        prompt: Union[str, Sequence[int], Sequence["Token"]],
         *,
-        inputs: Sequence[Union[str, int, bytes]] = (),
+        prompt: Union[str, Sequence[int], Sequence["Token"]],
+        inputs: Sequence[Union[str, Sequence[int], bytes]] = (),
         model_name: str = "",
         max_len: int = 256,
         temperature: float = 0.7,
@@ -91,10 +91,10 @@ class AsyncSampler:
         """Generates a model response by continuing `prompt`.
 
         Args:
-            prompt: [Deprecated, use inputs instead] Prompt to continue. This can either be a string, a sequence of
-                token IDs, or a sequence of `Token` instances.
-            inputs: Multimodal input of the model. This can be a sequence of strings, token IDs, image in bytes or
-                base64 encoded string.
+            prompt: [Deprecated, use inputs instead] Prompt to continue. This can either be a
+                string, a sequence of token IDs, or a sequence of `Token` instances.
+            inputs: Multimodal input of the model. This can be a sequence of strings, token IDs,
+                image in bytes or base64 encoded string.
             model_name: Name of the model to sample from. Leave empty to sample from the default
                 model.
             max_len: Maximum number of tokens to generate.
@@ -175,11 +175,10 @@ class AsyncSampler:
                 else:
                     logging.error("Invalid input type %s.", type(element))
         else:
-            token_ids = await self._prompt_to_token_ids(prompt, model_name)
-            converted_inputs = (PromptInput(token_ids=TokenIds(tokens=token_ids)),)
+            converted_inputs.append(_prompt_to_input(prompt))
 
         request = sampler_public_pb2.SampleTokensRequest(
-            prompt=token_ids,
+            inputs=converted_inputs,
             settings=sampler_public_pb2.SampleSettings(
                 max_len=max_len or 0,
                 temperature=temperature,
@@ -205,43 +204,6 @@ class AsyncSampler:
             elif token.HasField("budget"):
                 # The sample request also sends the current token budget information.
                 log_budget_update(token.budget)
-
-    async def _prompt_to_token_ids(
-        self, prompt: Union[str, Sequence[int], Sequence["Token"]], model_name: str
-    ) -> list[int]:
-        """Converts a prompt to a list of token IDs.
-
-        Args:
-            prompt: The prompt, which can take one of three formats: A raw string, a sequence of
-                integers (which are assumed to be token IDs), or a sequence of `Token` instances.
-            model_name: Name of the model to use if we have to call the tokenizer.
-
-        Returns:
-            List of token IDs.
-
-        Raises:
-            ValueError: If the prompt's type doesn't conform to our assumptions.
-        """
-        assert prompt, "Prompt must not be empty."
-
-        if isinstance(prompt, str):
-            # The prompt is a raw string, tokenize it and extract the token IDs.
-            tokens = await self.tokenize(prompt, model_name)
-            return [t.token_id for t in tokens]
-        elif isinstance(prompt, Sequence):
-            # Check the type of the first item in the list and assume all items are of the same
-            # type.
-            if isinstance(prompt[0], int):
-                # The prompt is already in the form of a list of integers. Nothing to do here.
-                return list(prompt)
-            elif isinstance(prompt[0], Token):
-                # Extract the token IDs from the sequence of token instances.
-                return [t.token_id for t in prompt]
-
-        raise ValueError(
-            f"Prompt must be either a string, a list of token IDs, or a sequence of "
-            f"Token instance. Given prompt was neither. Prompt: {prompt}"
-        )
 
 
 @dataclasses.dataclass(frozen=True)
@@ -308,3 +270,38 @@ def _parse_input_token(token: Union[int, str]) -> sampler_public_pb2.InputToken:
         return sampler_public_pb2.InputToken(string_token=token)
     else:
         raise ValueError(f"Invalid token type {type(token)}.")
+
+
+def _prompt_to_input(
+    prompt: Union[str, Sequence[int], Sequence["Token"]]) -> PromptInput:
+    """Converts a prompt to a PromptInput proto.
+
+    Args:
+        prompt: The prompt, which can take one of three formats: A raw string, a sequence of
+            integers (which are assumed to be token IDs), or a sequence of `Token` instances.
+
+    Returns:
+        List of token IDs.
+
+    Raises:
+        ValueError: If the prompt's type doesn't conform to our assumptions.
+    """
+    assert prompt, "Prompt must not be empty."
+
+    if isinstance(prompt, str):
+        # The prompt is a raw string.
+        return PromptInput(text=prompt)
+    elif isinstance(prompt, Sequence):
+        # Check the type of the first item in the list and assume all items are of the same
+        # type.
+        if isinstance(prompt[0], int):
+            # The prompt is in the form of a list of integers.
+            return PromptInput(token_ids=TokenIds(tokens=prompt))
+        elif isinstance(prompt[0], Token):
+            # Extract the token IDs from the sequence of token instances.
+            return PromptInput(token_ids=TokenIds(tokens=[t.token_id for t in prompt]))
+
+    raise ValueError(
+        f"Prompt must be either a string, a list of token IDs, or a sequence of "
+        f"Token instance. Given prompt was neither. Prompt: {prompt}"
+    )

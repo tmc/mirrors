@@ -16,13 +16,17 @@ class ResponseFormat(TypedDict, total=False):
 class ChatCompletionMessageParam(TypedDict, total=False):
     """Describes the structure of a `Message` object."""
 
-    content: str
+    content: Union[str, list[dict]]
     role: Union[Literal["system"], Literal["user"], Literal["assistant"]]
 
 
 _UNSUPPORTED_ARGUMENT_ERROR_TEMPLATE = (
     "The '{}' argument is not supported by the xAI API. Please remove it from the"
     "`completions.create` call."
+)
+
+_UNSUPPORTED_CONTENT_TYPE_ERROR_TEMPLATE = (
+    "The '{}' content type is not supported by the xAI API. Please remove it."
 )
 
 
@@ -195,7 +199,7 @@ class Completions:
         extra_query: Any = None,
         extra_body: Any = None,
         timeout: Optional[float] = None,
-    ) -> ChatCompletion | Generator[ChatCompletionChunk, None, None]:
+    ) -> Union[ChatCompletion, Generator[ChatCompletionChunk, None, None]]:
         """Creates a new chat completion by calling the API.
 
         Args:
@@ -260,11 +264,50 @@ class Completions:
         if response_format is not None:
             response_format = compat_chat_pb2.ResponseFormat(type=response_format["type"])
 
+        def _parse_message(message):
+            content = None
+            if isinstance(message["content"], str):
+                content = [
+                    compat_chat_pb2.Content(
+                        type="text",
+                        text=message["content"],
+                    )
+                ]
+            elif isinstance(message["content"], list):
+                content = []
+                for content_dict in message["content"]:
+                    content_type = content_dict["type"]
+                    if content_type in ["text", "text_file"]:
+                        content.append(
+                            compat_chat_pb2.Content(
+                                type=content_type,
+                                text=content_dict["text"],
+                            )
+                        )
+                    elif content_type == "image_url":
+                        content.append(
+                            compat_chat_pb2.Content(
+                                type=content_type,
+                                image_url=compat_chat_pb2.ImageUrl(
+                                    url=content_dict["image_url"]["url"]
+                                ),
+                            )
+                        )
+                    else:
+                        raise ValueError(
+                            _UNSUPPORTED_CONTENT_TYPE_ERROR_TEMPLATE.format(content_type)
+                        )
+            else:
+                raise ValueError("Content must be either a string or a list of dictionary.")
+
+            return compat_chat_pb2.Message(
+                content=content,
+                role=message["role"],
+            )
+
         # Create the request proto.
         request = compat_chat_pb2.GetCompletionsRequest(
-            messages=[
-                compat_chat_pb2.Message(content=m["content"], role=m["role"]) for m in messages
-            ],
+            messages=map(_parse_message, messages),
             model=model or "",
             frequency_penalty=frequency_penalty or 0,
             logit_bias=logit_bias,
@@ -284,10 +327,12 @@ class Completions:
             kwargs["timeout"] = timeout
 
         if stream:
+
             def _unroll():
                 """Unrolls the stream so we can return an iterator"""
                 for chunk in self._client.GetCompletionChunk(request):
                     yield ChatCompletionChunk.from_proto(chunk)
+
             return _unroll()
         else:
             return ChatCompletion.from_proto(self._client.GetCompletion(request, **kwargs))
