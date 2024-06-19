@@ -29,7 +29,7 @@ class ChatStub(object):
                 )
         self.ListConversations = channel.unary_unary(
                 '/prompt_ide.Chat/ListConversations',
-                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                request_serializer=chat__pb2.ListConversationsRequest.SerializeToString,
                 response_deserializer=chat__pb2.ListConversationsResponse.FromString,
                 )
         self.AddResponse = channel.unary_stream(
@@ -61,6 +61,11 @@ class ChatStub(object):
                 '/prompt_ide.Chat/ShareConversation',
                 request_serializer=chat__pb2.ShareConversationRequest.SerializeToString,
                 response_deserializer=chat__pb2.ShareConversationResponse.FromString,
+                )
+        self.SearchConversations = channel.unary_unary(
+                '/prompt_ide.Chat/SearchConversations',
+                request_serializer=chat__pb2.SearchConversationsRequest.SerializeToString,
+                response_deserializer=chat__pb2.SearchConversationsResponse.FromString,
                 )
 
 
@@ -132,6 +137,13 @@ class ChatServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SearchConversations(self, request, context):
+        """Search conversation based on a query.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ChatServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -147,7 +159,7 @@ def add_ChatServicer_to_server(servicer, server):
             ),
             'ListConversations': grpc.unary_unary_rpc_method_handler(
                     servicer.ListConversations,
-                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    request_deserializer=chat__pb2.ListConversationsRequest.FromString,
                     response_serializer=chat__pb2.ListConversationsResponse.SerializeToString,
             ),
             'AddResponse': grpc.unary_stream_rpc_method_handler(
@@ -179,6 +191,11 @@ def add_ChatServicer_to_server(servicer, server):
                     servicer.ShareConversation,
                     request_deserializer=chat__pb2.ShareConversationRequest.FromString,
                     response_serializer=chat__pb2.ShareConversationResponse.SerializeToString,
+            ),
+            'SearchConversations': grpc.unary_unary_rpc_method_handler(
+                    servicer.SearchConversations,
+                    request_deserializer=chat__pb2.SearchConversationsRequest.FromString,
+                    response_serializer=chat__pb2.SearchConversationsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -237,7 +254,7 @@ class Chat(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/prompt_ide.Chat/ListConversations',
-            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            chat__pb2.ListConversationsRequest.SerializeToString,
             chat__pb2.ListConversationsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -341,5 +358,22 @@ class Chat(object):
         return grpc.experimental.unary_unary(request, target, '/prompt_ide.Chat/ShareConversation',
             chat__pb2.ShareConversationRequest.SerializeToString,
             chat__pb2.ShareConversationResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SearchConversations(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/prompt_ide.Chat/SearchConversations',
+            chat__pb2.SearchConversationsRequest.SerializeToString,
+            chat__pb2.SearchConversationsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

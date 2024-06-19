@@ -10,7 +10,7 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class StatelessConversation(_message.Message):
-    __slots__ = ["stateless_conversation_id", "responses", "system_prompt_name", "name", "username", "expose_username_to_grok", "disable_search", "enable_image_generation", "model_name", "x_posts_as_field", "additional_options"]
+    __slots__ = ["stateless_conversation_id", "responses", "system_prompt_name", "name", "username", "expose_username_to_grok", "disable_search", "enable_image_generation", "model_name", "x_posts_as_field", "additional_options", "include_x_posts"]
     STATELESS_CONVERSATION_ID_FIELD_NUMBER: _ClassVar[int]
     RESPONSES_FIELD_NUMBER: _ClassVar[int]
     SYSTEM_PROMPT_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -22,6 +22,7 @@ class StatelessConversation(_message.Message):
     MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     X_POSTS_AS_FIELD_FIELD_NUMBER: _ClassVar[int]
     ADDITIONAL_OPTIONS_FIELD_NUMBER: _ClassVar[int]
+    INCLUDE_X_POSTS_FIELD_NUMBER: _ClassVar[int]
     stateless_conversation_id: str
     responses: _containers.RepeatedCompositeFieldContainer[StatelessResponse]
     system_prompt_name: str
@@ -33,10 +34,11 @@ class StatelessConversation(_message.Message):
     model_name: str
     x_posts_as_field: bool
     additional_options: _chat_pb2.AdditionalOptions
-    def __init__(self, stateless_conversation_id: _Optional[str] = ..., responses: _Optional[_Iterable[_Union[StatelessResponse, _Mapping]]] = ..., system_prompt_name: _Optional[str] = ..., name: _Optional[str] = ..., username: _Optional[str] = ..., expose_username_to_grok: bool = ..., disable_search: bool = ..., enable_image_generation: bool = ..., model_name: _Optional[str] = ..., x_posts_as_field: bool = ..., additional_options: _Optional[_Union[_chat_pb2.AdditionalOptions, _Mapping]] = ...) -> None: ...
+    include_x_posts: bool
+    def __init__(self, stateless_conversation_id: _Optional[str] = ..., responses: _Optional[_Iterable[_Union[StatelessResponse, _Mapping]]] = ..., system_prompt_name: _Optional[str] = ..., name: _Optional[str] = ..., username: _Optional[str] = ..., expose_username_to_grok: bool = ..., disable_search: bool = ..., enable_image_generation: bool = ..., model_name: _Optional[str] = ..., x_posts_as_field: bool = ..., additional_options: _Optional[_Union[_chat_pb2.AdditionalOptions, _Mapping]] = ..., include_x_posts: bool = ...) -> None: ...
 
 class StatelessResponse(_message.Message):
-    __slots__ = ["sender", "message", "query", "query_type", "image_attachment", "x_post_ids", "debug_log"]
+    __slots__ = ["sender", "message", "query", "query_type", "image_attachment", "x_post_ids", "debug_log", "image_inputs"]
     class Sender(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
         UNKNOWN: _ClassVar[StatelessResponse.Sender]
@@ -52,6 +54,7 @@ class StatelessResponse(_message.Message):
     IMAGE_ATTACHMENT_FIELD_NUMBER: _ClassVar[int]
     X_POST_IDS_FIELD_NUMBER: _ClassVar[int]
     DEBUG_LOG_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_INPUTS_FIELD_NUMBER: _ClassVar[int]
     sender: StatelessResponse.Sender
     message: str
     query: str
@@ -59,7 +62,8 @@ class StatelessResponse(_message.Message):
     image_attachment: ImageAttachment
     x_post_ids: _containers.RepeatedScalarFieldContainer[str]
     debug_log: _chat_pb2.ResponseDebugLog
-    def __init__(self, sender: _Optional[_Union[StatelessResponse.Sender, str]] = ..., message: _Optional[str] = ..., query: _Optional[str] = ..., query_type: _Optional[str] = ..., image_attachment: _Optional[_Union[ImageAttachment, _Mapping]] = ..., x_post_ids: _Optional[_Iterable[str]] = ..., debug_log: _Optional[_Union[_chat_pb2.ResponseDebugLog, _Mapping]] = ...) -> None: ...
+    image_inputs: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, sender: _Optional[_Union[StatelessResponse.Sender, str]] = ..., message: _Optional[str] = ..., query: _Optional[str] = ..., query_type: _Optional[str] = ..., image_attachment: _Optional[_Union[ImageAttachment, _Mapping]] = ..., x_post_ids: _Optional[_Iterable[str]] = ..., debug_log: _Optional[_Union[_chat_pb2.ResponseDebugLog, _Mapping]] = ..., image_inputs: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class ImageAttachment(_message.Message):
     __slots__ = ["image_bytes", "content_type"]

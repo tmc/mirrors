@@ -75,7 +75,7 @@ class AsyncSampler:
         self,
         *,
         prompt: Union[str, Sequence[int], Sequence["Token"]],
-        inputs: Sequence[Union[str, int, bytes]] = (),
+        inputs: Sequence[Union[str, Sequence[int], bytes]] = (),
         model_name: str = "",
         max_len: int = 256,
         temperature: float = 0.7,
