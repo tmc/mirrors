@@ -159,7 +159,7 @@ class AddResponseRequest(_message.Message):
     def __init__(self, conversation_id: _Optional[str] = ..., message: _Optional[str] = ..., model_name: _Optional[str] = ..., parent_response_id: _Optional[str] = ..., system_prompt_name: _Optional[str] = ..., disable_search: bool = ..., enable_image_generation: bool = ..., force_rust: bool = ..., image_attachments: _Optional[_Iterable[str]] = ..., additional_options: _Optional[_Union[AdditionalOptions, _Mapping]] = ...) -> None: ...
 
 class AddResponseResponse(_message.Message):
-    __slots__ = ["user_response", "token", "model_response", "query_action", "image_generation_response", "x_search_results", "cached_image_generation_response"]
+    __slots__ = ["user_response", "token", "model_response", "query_action", "image_generation_response", "x_search_results", "cached_image_generation_response", "web_search_results"]
     USER_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     MODEL_RESPONSE_FIELD_NUMBER: _ClassVar[int]
@@ -167,6 +167,7 @@ class AddResponseResponse(_message.Message):
     IMAGE_GENERATION_RESPONSE_FIELD_NUMBER: _ClassVar[int]
     X_SEARCH_RESULTS_FIELD_NUMBER: _ClassVar[int]
     CACHED_IMAGE_GENERATION_RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    WEB_SEARCH_RESULTS_FIELD_NUMBER: _ClassVar[int]
     user_response: Response
     token: _sampler_public_pb2.SampleTokensResponse
     model_response: Response
@@ -174,7 +175,8 @@ class AddResponseResponse(_message.Message):
     image_generation_response: ImageGenerationResponse
     x_search_results: _prod_search_pb2.XSearchResults
     cached_image_generation_response: CachedImageGenerationResponse
-    def __init__(self, user_response: _Optional[_Union[Response, _Mapping]] = ..., token: _Optional[_Union[_sampler_public_pb2.SampleTokensResponse, _Mapping]] = ..., model_response: _Optional[_Union[Response, _Mapping]] = ..., query_action: _Optional[_Union[QueryAction, _Mapping]] = ..., image_generation_response: _Optional[_Union[ImageGenerationResponse, _Mapping]] = ..., x_search_results: _Optional[_Union[_prod_search_pb2.XSearchResults, _Mapping]] = ..., cached_image_generation_response: _Optional[_Union[CachedImageGenerationResponse, _Mapping]] = ...) -> None: ...
+    web_search_results: _prod_search_pb2.WebSearchResults
+    def __init__(self, user_response: _Optional[_Union[Response, _Mapping]] = ..., token: _Optional[_Union[_sampler_public_pb2.SampleTokensResponse, _Mapping]] = ..., model_response: _Optional[_Union[Response, _Mapping]] = ..., query_action: _Optional[_Union[QueryAction, _Mapping]] = ..., image_generation_response: _Optional[_Union[ImageGenerationResponse, _Mapping]] = ..., x_search_results: _Optional[_Union[_prod_search_pb2.XSearchResults, _Mapping]] = ..., cached_image_generation_response: _Optional[_Union[CachedImageGenerationResponse, _Mapping]] = ..., web_search_results: _Optional[_Union[_prod_search_pb2.WebSearchResults, _Mapping]] = ...) -> None: ...
 
 class QueryAction(_message.Message):
     __slots__ = ["query", "type"]

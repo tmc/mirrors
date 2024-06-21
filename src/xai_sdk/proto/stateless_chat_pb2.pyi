@@ -1,6 +1,7 @@
 from .google.api import annotations_pb2 as _annotations_pb2
 from google.protobuf import empty_pb2 as _empty_pb2
 from . import chat_pb2 as _chat_pb2
+from . import prod_search_pb2 as _prod_search_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -38,7 +39,7 @@ class StatelessConversation(_message.Message):
     def __init__(self, stateless_conversation_id: _Optional[str] = ..., responses: _Optional[_Iterable[_Union[StatelessResponse, _Mapping]]] = ..., system_prompt_name: _Optional[str] = ..., name: _Optional[str] = ..., username: _Optional[str] = ..., expose_username_to_grok: bool = ..., disable_search: bool = ..., enable_image_generation: bool = ..., model_name: _Optional[str] = ..., x_posts_as_field: bool = ..., additional_options: _Optional[_Union[_chat_pb2.AdditionalOptions, _Mapping]] = ..., include_x_posts: bool = ...) -> None: ...
 
 class StatelessResponse(_message.Message):
-    __slots__ = ["sender", "message", "query", "query_type", "image_attachment", "x_post_ids", "debug_log", "image_inputs"]
+    __slots__ = ["sender", "message", "query", "query_type", "image_attachment", "x_post_ids", "debug_log", "image_inputs", "web_search_results"]
     class Sender(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
         UNKNOWN: _ClassVar[StatelessResponse.Sender]
@@ -55,6 +56,7 @@ class StatelessResponse(_message.Message):
     X_POST_IDS_FIELD_NUMBER: _ClassVar[int]
     DEBUG_LOG_FIELD_NUMBER: _ClassVar[int]
     IMAGE_INPUTS_FIELD_NUMBER: _ClassVar[int]
+    WEB_SEARCH_RESULTS_FIELD_NUMBER: _ClassVar[int]
     sender: StatelessResponse.Sender
     message: str
     query: str
@@ -63,7 +65,8 @@ class StatelessResponse(_message.Message):
     x_post_ids: _containers.RepeatedScalarFieldContainer[str]
     debug_log: _chat_pb2.ResponseDebugLog
     image_inputs: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, sender: _Optional[_Union[StatelessResponse.Sender, str]] = ..., message: _Optional[str] = ..., query: _Optional[str] = ..., query_type: _Optional[str] = ..., image_attachment: _Optional[_Union[ImageAttachment, _Mapping]] = ..., x_post_ids: _Optional[_Iterable[str]] = ..., debug_log: _Optional[_Union[_chat_pb2.ResponseDebugLog, _Mapping]] = ..., image_inputs: _Optional[_Iterable[str]] = ...) -> None: ...
+    web_search_results: _prod_search_pb2.WebSearchResults
+    def __init__(self, sender: _Optional[_Union[StatelessResponse.Sender, str]] = ..., message: _Optional[str] = ..., query: _Optional[str] = ..., query_type: _Optional[str] = ..., image_attachment: _Optional[_Union[ImageAttachment, _Mapping]] = ..., x_post_ids: _Optional[_Iterable[str]] = ..., debug_log: _Optional[_Union[_chat_pb2.ResponseDebugLog, _Mapping]] = ..., image_inputs: _Optional[_Iterable[str]] = ..., web_search_results: _Optional[_Union[_prod_search_pb2.WebSearchResults, _Mapping]] = ...) -> None: ...
 
 class ImageAttachment(_message.Message):
     __slots__ = ["image_bytes", "content_type"]

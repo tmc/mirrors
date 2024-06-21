@@ -150,6 +150,9 @@ class Conversation:
                     if update.debug_log:
                         response.debug_log.CopyFrom(update.debug_log)
 
+                    if update.web_search_results:
+                        response.web_search_results.CopyFrom(update.web_search_results)
+
                 self._conversation.responses.append(response)
                 response_future.set_result(response)
             except Exception as e:

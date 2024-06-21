@@ -44,3 +44,4 @@ x/xuechen/deprecated/**
 x/xuechen/assets/**
 x/xuechen/dump/**
 
+prod/quotalib/src/net/generated/**
