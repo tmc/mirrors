@@ -41,6 +41,11 @@ class SamplerStub(object):
                 request_serializer=sampler__public__pb2.GetTokenBudgetRequest.SerializeToString,
                 response_deserializer=sampler__public__pb2.TokenBudget.FromString,
                 )
+        self.ListModels = channel.unary_unary(
+                '/prompt_ide.Sampler/ListModels',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=sampler__public__pb2.ListModelsResponse.FromString,
+                )
 
 
 class SamplerServicer(object):
@@ -83,6 +88,13 @@ class SamplerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ListModels(self, request, context):
+        """Returns a list of all models available on the server.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_SamplerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -110,6 +122,11 @@ def add_SamplerServicer_to_server(servicer, server):
                     servicer.GetTokenBudget,
                     request_deserializer=sampler__public__pb2.GetTokenBudgetRequest.FromString,
                     response_serializer=sampler__public__pb2.TokenBudget.SerializeToString,
+            ),
+            'ListModels': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListModels,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=sampler__public__pb2.ListModelsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -203,5 +220,22 @@ class Sampler(object):
         return grpc.experimental.unary_unary(request, target, '/prompt_ide.Sampler/GetTokenBudget',
             sampler__public__pb2.GetTokenBudgetRequest.SerializeToString,
             sampler__public__pb2.TokenBudget.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ListModels(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/prompt_ide.Sampler/ListModels',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            sampler__public__pb2.ListModelsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

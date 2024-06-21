@@ -25,6 +25,7 @@ venv
 .pytest_cache
 .ruff_cache
 **/.ipynb_checkpoints/
+**/sdk/python/dist/
 
 # Mac
 .DS_STORE
@@ -43,3 +44,4 @@ x/xuechen/deprecated/**
 x/xuechen/assets/**
 x/xuechen/dump/**
 
+prod/quotalib/src/net/generated/**
