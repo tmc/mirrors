@@ -148,10 +148,13 @@ class Conversation:
                         response.query += update.query
                     
                     if update.debug_log:
-                        response.debug_log.CopyFrom(update.debug_log)
+                        response.debug_log.MergeFrom(update.debug_log)
 
                     if len(update.web_search_results.results) > 0:
                         response.web_search_results.CopyFrom(update.web_search_results)
+
+                    if update.search_context:
+                        response.search_context.MergeFrom(update.search_context)
 
                 self._conversation.responses.append(response)
                 response_future.set_result(response)

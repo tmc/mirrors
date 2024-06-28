@@ -5,8 +5,14 @@ from typing import Optional
 
 import grpc
 
-from . import chat, compat, files, grok, sampler
-from .proto import chat_pb2_grpc, files_pb2_grpc, sampler_public_pb2_grpc, stateless_chat_pb2_grpc
+from . import chat, compat, files, grok, sampler, embedder
+from .proto import (
+    chat_pb2_grpc,
+    files_pb2_grpc,
+    sampler_public_pb2_grpc,
+    stateless_chat_pb2_grpc,
+    embedder_public_pb2_grpc
+)
 
 
 class Client:
@@ -23,6 +29,7 @@ class Client:
     files: files.AsyncFiles
     grok: grok.AsyncGrok
     sampler: sampler.AsyncSampler
+    embedder: embedder.AsyncEmbedder
 
     def __init__(
         self,
@@ -71,6 +78,7 @@ class Client:
         self.chat = chat.AsyncChat(stateless_chat_pb2_grpc.StatelessChatStub(channel=async_channel))
         self.grok = grok.AsyncGrok(chat_pb2_grpc.ChatStub(channel=async_channel))
         self.files = files.AsyncFiles(files_pb2_grpc.FileStub(channel=async_channel))
+        self.embedder = embedder.AsyncEmbedder(embedder_public_pb2_grpc.EmbedderStub(channel=async_channel))
 
         # OpenAI-compatible client.
         self.compat = compat.Client(sync_channel, async_channel)
