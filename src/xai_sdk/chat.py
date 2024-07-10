@@ -24,7 +24,7 @@ class AsyncChat:
         self._stub = stub
 
     def create_conversation(
-        self, fun_mode: bool = False, disable_search: bool = False
+        self, fun_mode: bool = False, disable_search: bool = False, model_name: str = ""
     ) -> "Conversation":
         """Creates a new empty conversation.
 
@@ -32,11 +32,12 @@ class AsyncChat:
             fun_mode: Whether fun mode shall be enabled for this conversation.
             disable_search: If true, Grok will not search X for context. This means Grok won't be
                 able to answer questions that require realtime information.
+            model_name: Name of the model use it. If empty, the default model will be used.
 
         Returns:
             Newly created conversation.
         """
-        return Conversation(self._stub, fun_mode, disable_search)
+        return Conversation(self._stub, fun_mode, disable_search, model_name)
 
 
 class Conversation:
@@ -47,6 +48,7 @@ class Conversation:
         stub: stateless_chat_pb2_grpc.StatelessChatStub,
         fun_mode: bool,
         disable_search: bool,
+        model_name: str,
     ):
         """Initializes a new instance of the `Conversation` class.
 
@@ -55,6 +57,7 @@ class Conversation:
             fun_mode: If true, Grok will respond in fun mode.
             disable_search: If true, Grok will not search X for context. This means Grok won't be
                 able to answer questions that require realtime information.
+            model_name: Name of the model use it. If empty, the default model will be used.
         """
         self._stub = stub
         self._conversation_id = uuid.uuid4().hex
@@ -64,6 +67,8 @@ class Conversation:
             responses=[],
             system_prompt_name="fun" if fun_mode else "",
             disable_search=disable_search,
+            model_name=model_name,
+            x_posts_as_field=True,
         )
 
     @property
@@ -140,6 +145,15 @@ class Conversation:
 
                     if update.query:
                         response.query += update.query
+                    
+                    if update.debug_log:
+                        response.debug_log.MergeFrom(update.debug_log)
+
+                    if len(update.web_search_results.results) > 0:
+                        response.web_search_results.CopyFrom(update.web_search_results)
+
+                    if update.search_context:
+                        response.search_context.MergeFrom(update.search_context)
 
                 self._conversation.responses.append(response)
                 response_future.set_result(response)

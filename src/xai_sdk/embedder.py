@@ -9,6 +9,7 @@ class AsyncEmbedder:
 
     def __init__(self, stub: embedder_public_pb2_grpc.EmbedderStub):
         """Initializes a new instance of the `AsyncEmbedder` class.
+
         Args:
             stub: The gRPC stub to use for interacting with the API.
         """
@@ -16,9 +17,11 @@ class AsyncEmbedder:
 
     async def embed(self, texts: list[str], model_name: str):# -> list[Tuple[list[float], int]]:
         """Embeds the given texts.
+
         Args:
             texts: The list of raw texts to embed.
             model_name: The name of the model to use for embedding.
+
         Returns:
             A list of tuples, where each tuple contains the embedding and the shape.
         """
