@@ -27,6 +27,8 @@ classifiers = [
 dependencies = [
     "grpcio",
     "protobuf",
+    "deprecated",
+    "parameterized",
 ]
 
 [project.urls]

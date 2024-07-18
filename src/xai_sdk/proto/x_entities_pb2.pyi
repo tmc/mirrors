@@ -7,7 +7,7 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class XPost(_message.Message):
-    __slots__ = ("username", "name", "text", "create_time", "profile_image_url", "post_id", "citation_id", "parent", "parent_post_id", "quote_post_id", "quote")
+    __slots__ = ["username", "name", "text", "create_time", "profile_image_url", "post_id", "citation_id", "parent", "parent_post_id", "quote_post_id", "quote"]
     USERNAME_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     TEXT_FIELD_NUMBER: _ClassVar[int]
@@ -33,7 +33,7 @@ class XPost(_message.Message):
     def __init__(self, username: _Optional[str] = ..., name: _Optional[str] = ..., text: _Optional[str] = ..., create_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., profile_image_url: _Optional[str] = ..., post_id: _Optional[str] = ..., citation_id: _Optional[str] = ..., parent: _Optional[_Union[XPost, _Mapping]] = ..., parent_post_id: _Optional[str] = ..., quote_post_id: _Optional[str] = ..., quote: _Optional[_Union[XPost, _Mapping]] = ...) -> None: ...
 
 class XTrendPost(_message.Message):
-    __slots__ = ("author_handle", "author_name", "author_avatar", "author_nfollowers", "rest_id", "nreplies", "text", "created_ts", "nreposts", "imgs", "vids", "card")
+    __slots__ = ["author_handle", "author_name", "author_avatar", "author_nfollowers", "rest_id", "nreplies", "text", "created_ts", "nreposts", "imgs", "vids", "card"]
     AUTHOR_HANDLE_FIELD_NUMBER: _ClassVar[int]
     AUTHOR_NAME_FIELD_NUMBER: _ClassVar[int]
     AUTHOR_AVATAR_FIELD_NUMBER: _ClassVar[int]
@@ -61,7 +61,7 @@ class XTrendPost(_message.Message):
     def __init__(self, author_handle: _Optional[str] = ..., author_name: _Optional[str] = ..., author_avatar: _Optional[str] = ..., author_nfollowers: _Optional[int] = ..., rest_id: _Optional[str] = ..., nreplies: _Optional[int] = ..., text: _Optional[str] = ..., created_ts: _Optional[int] = ..., nreposts: _Optional[int] = ..., imgs: _Optional[_Iterable[str]] = ..., vids: _Optional[_Iterable[str]] = ..., card: _Optional[_Union[XTrendPostCard, _Mapping]] = ...) -> None: ...
 
 class XTrendResult(_message.Message):
-    __slots__ = ("name", "hook", "summary", "rest_id", "posts", "thumbnail", "header")
+    __slots__ = ["name", "hook", "summary", "rest_id", "posts", "thumbnail", "header"]
     NAME_FIELD_NUMBER: _ClassVar[int]
     HOOK_FIELD_NUMBER: _ClassVar[int]
     SUMMARY_FIELD_NUMBER: _ClassVar[int]
@@ -79,7 +79,7 @@ class XTrendResult(_message.Message):
     def __init__(self, name: _Optional[str] = ..., hook: _Optional[str] = ..., summary: _Optional[str] = ..., rest_id: _Optional[str] = ..., posts: _Optional[_Iterable[_Union[XTrendPost, _Mapping]]] = ..., thumbnail: _Optional[str] = ..., header: _Optional[str] = ...) -> None: ...
 
 class XTrendPostCard(_message.Message):
-    __slots__ = ("img", "url")
+    __slots__ = ["img", "url"]
     IMG_FIELD_NUMBER: _ClassVar[int]
     URL_FIELD_NUMBER: _ClassVar[int]
     img: str

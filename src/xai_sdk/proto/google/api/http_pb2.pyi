@@ -6,13 +6,13 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class Http(_message.Message):
-    __slots__ = ("rules",)
+    __slots__ = ["rules"]
     RULES_FIELD_NUMBER: _ClassVar[int]
     rules: _containers.RepeatedCompositeFieldContainer[HttpRule]
     def __init__(self, rules: _Optional[_Iterable[_Union[HttpRule, _Mapping]]] = ...) -> None: ...
 
 class HttpRule(_message.Message):
-    __slots__ = ("selector", "get", "put", "post", "delete", "patch", "custom", "body", "additional_bindings")
+    __slots__ = ["selector", "get", "put", "post", "delete", "patch", "custom", "body", "additional_bindings"]
     SELECTOR_FIELD_NUMBER: _ClassVar[int]
     GET_FIELD_NUMBER: _ClassVar[int]
     PUT_FIELD_NUMBER: _ClassVar[int]
@@ -34,7 +34,7 @@ class HttpRule(_message.Message):
     def __init__(self, selector: _Optional[str] = ..., get: _Optional[str] = ..., put: _Optional[str] = ..., post: _Optional[str] = ..., delete: _Optional[str] = ..., patch: _Optional[str] = ..., custom: _Optional[_Union[CustomHttpPattern, _Mapping]] = ..., body: _Optional[str] = ..., additional_bindings: _Optional[_Iterable[_Union[HttpRule, _Mapping]]] = ...) -> None: ...
 
 class CustomHttpPattern(_message.Message):
-    __slots__ = ("kind", "path")
+    __slots__ = ["kind", "path"]
     KIND_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
     kind: str
