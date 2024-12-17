@@ -2,7 +2,18 @@
 
 import json
 import requests
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Union
+from xai_grok_sdk.models import (
+    ModelType,
+    ChatCompletionRequest,
+    Message,
+    Usage,
+    Choice,
+    ChatCompletionResponse,
+    ToolCall,
+    ToolResult,
+    Function,
+)
 
 
 class XAI:
@@ -11,32 +22,40 @@ class XAI:
     def __init__(
         self,
         api_key: str,
-        model: str,
+        model: ModelType,
         tools: Optional[List[Dict[str, Any]]] = None,
+        function_map: Optional[Dict[str, Callable]] = None,
     ):
         """
         Initialize the XAI client.
 
         Args:
-            api_key: API key for XAI.
-            model: Model to use for chat completions.
+            api_key: API key for XAI (required).
+            model: Model to use for chat completions (required). Must be one of: "grok-2-1212", "grok-beta"
             tools: List of tools available for the model to use. Each tool should have a
-                'function' field with 'name' and an actual implementation function.
+                'name' field.
+            function_map: Dictionary mapping function names to actual implementation functions.
+                Required if tools are provided.
         """
         self.api_key = api_key
         self.model = model
         self.base_url = "https://api.x.ai/v1"
         self.tools = []
-        self.function_map: Dict[str, Callable] = {}
+        self.function_map = {}
 
         if tools:
             for tool in tools:
-                if "function" in tool and "name" in tool["function"]:
-                    if hasattr(self, tool["function"]["name"]):
-                        self.tools.append(tool)
-                        self.function_map[tool["function"]["name"]] = getattr(
-                            self, tool["function"]["name"]
+                if "name" not in tool:
+                    raise ValueError("Each tool must have a 'name' field")
+                self.tools.append({"type": "function", "function": tool})
+
+                if function_map:
+                    func_name = tool["name"]
+                    if func_name not in function_map:
+                        raise ValueError(
+                            f"Function '{func_name}' not found in function_map"
                         )
+                    self.function_map[func_name] = function_map[func_name]
 
     def _make_api_call(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Make an API call to XAI."""
@@ -53,59 +72,145 @@ class XAI:
     def invoke(
         self,
         messages: List[Dict[str, Any]],
-        tool_choice: str = "auto",
-    ) -> Dict[str, Any]:
+        frequency_penalty: Optional[float] = None,
+        logit_bias: Optional[Dict[int, float]] = None,
+        logprobs: Optional[bool] = None,
+        max_tokens: Optional[int] = None,
+        n: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        response_format: Optional[Any] = None,
+        seed: Optional[int] = None,
+        stop: Optional[List[Any]] = None,
+        stream: Optional[bool] = None,
+        stream_options: Optional[Any] = None,
+        temperature: Optional[float] = None,
+        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        top_logprobs: Optional[int] = None,
+        top_p: Optional[float] = None,
+        user: Optional[str] = None,
+    ) -> ChatCompletionResponse:
         """
         Run a conversation with the model.
 
         Args:
-            messages: List of conversation messages
+            messages: List of conversation messages (required)
+            frequency_penalty: Frequency penalty parameter
+            logit_bias: Token bias dictionary
+            logprobs: Whether to return log probabilities
+            max_tokens: Maximum number of tokens to generate
+            n: Number of completions to generate
+            presence_penalty: Presence penalty parameter
+            response_format: Format of the response
+            seed: Random seed for reproducibility
+            stop: Stop sequences
+            stream: Whether to stream the response
+            stream_options: Options for streaming
+            temperature: Sampling temperature
             tool_choice: Function calling mode ('auto', 'required', 'none', or specific function)
+            top_logprobs: Number of top log probabilities to return
+            top_p: Top-p sampling parameter
+            user: End-user identifier
 
         Returns:
-            Dict containing the model's response
+            Choice containing the model's response
         """
         # Prepare initial payload
-        payload = {
-            "model": self.model,
-            "messages": messages,
-        }
-        
-        # Only include tools-related parameters if tools are configured
-        if self.tools:
-            payload["tools"] = self.tools
-            payload["tool_choice"] = tool_choice
+        payload = ChatCompletionRequest(
+            messages=messages,
+            model=self.model,
+            frequency_penalty=frequency_penalty,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_tokens=max_tokens,
+            n=n,
+            presence_penalty=presence_penalty,
+            response_format=response_format,
+            seed=seed,
+            stop=stop,
+            stream=stream,
+            stream_options=stream_options,
+            temperature=temperature,
+            tools=self.tools,
+            tool_choice=tool_choice,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+        ).__dict__
 
-        # Make initial API call
+        # Make API call
         response_data = self._make_api_call(payload)
 
-        # Check if tool was called
-        if (
-            "choices" in response_data
-            and response_data["choices"]
-            and "message" in response_data["choices"][0]
-            and "tool_calls" in response_data["choices"][0]["message"]
-        ):
-            tool_call = response_data["choices"][0]["message"]["tool_calls"][0]
-            function_name = tool_call["function"]["name"]
-            function_args = json.loads(tool_call["function"]["arguments"])
+        # Handle tool calls if present
+        if "choices" in response_data and len(response_data["choices"]) > 0:
+            choice = response_data["choices"][0]
+            if "message" in choice and "tool_calls" in choice["message"]:
+                message = choice["message"]
+                tool_calls = message["tool_calls"]
 
-            # Execute the function if it exists in the function map
-            if function_name in self.function_map:
-                function_result = self.function_map[function_name](**function_args)
+                # Execute each tool call and collect results
+                tool_results = []
+                for tool_call in tool_calls:
+                    if tool_call["type"] == "function":
+                        function_name = tool_call["function"]["name"]
+                        if function_name in self.function_map:
+                            # Parse arguments and call function
+                            arguments = json.loads(tool_call["function"]["arguments"])
+                            result = self.function_map[function_name](**arguments)
+                            tool_results.append(
+                                ToolResult(
+                                    tool_call_id=tool_call["id"],
+                                    role="tool",
+                                    name=function_name,
+                                    content=str(result),
+                                )
+                            )
 
-                # Add function result to messages
-                messages.append(
-                    {
-                        "tool_call_id": tool_call["id"],
-                        "role": "tool",
-                        "name": function_name,
-                        "content": str(function_result),
-                    }
+                # Add tool results to the message if any were generated
+                if tool_results:
+                    message["tool_results"] = tool_results
+
+        # Convert response to ChatCompletionResponse
+        response = ChatCompletionResponse(
+            id=response_data["id"],
+            choices=[
+                Choice(
+                    index=choice["index"] if "index" in choice else 0,
+                    message=Message(
+                        role=choice["message"]["role"],
+                        content=choice["message"]["content"],
+                        tool_calls=(
+                            [
+                                ToolCall(
+                                    id=tc["id"],
+                                    type=tc["type"],
+                                    function=Function(
+                                        name=tc["function"]["name"],
+                                        arguments=json.loads(
+                                            tc["function"]["arguments"]
+                                        ),
+                                    ),
+                                )
+                                for tc in choice["message"].get("tool_calls", []) or []
+                            ]
+                            if "tool_calls" in choice["message"]
+                            else None
+                        ),
+                        tool_results=(
+                            tool_results
+                            if "tool_results" in choice["message"]
+                            else None
+                        ),
+                    ),
+                    finish_reason=choice["finish_reason"],
+                    logprobs=choice["logprobs"] if "logprobs" in choice else None,
                 )
+                for choice in response_data["choices"]
+            ],
+            created=response_data["created"],
+            model=response_data["model"],
+            object=response_data["object"],
+            system_fingerprint=response_data["system_fingerprint"],
+            usage=Usage(**response_data["usage"]) if "usage" in response_data else None,
+        )
 
-                # Get final response from the model
-                final_payload = {"model": self.model, "messages": messages}
-                return self._make_api_call(final_payload)
-
-        return response_data
+        return response
