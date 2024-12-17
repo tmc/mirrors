@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: xai-grok-sdk
-Version: 0.0.5
+Version: 0.0.6
 Summary: Lightweight xAI SDK with minimal dependencies
 License-File: LICENSE
 Requires-Dist: requests>=2.32.3
